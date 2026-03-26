@@ -652,4 +652,21 @@ function handleUrlParams() {
 
 async function checkPendingRenew() {
     if (!pendingRenew) return;
-    const { id, token } = pendingRen
+    const { id, token } = pendingRenew;
+    pendingRenew = null;
+    const { data, error } = await _sb.from('deadlines').select('*').eq('id', id).eq('reminder_token', token).maybeSingle();
+    if (error || !data) { toast('Link non valido o già usato', 'err'); return; }
+    if (currentView !== 'deadlines') switchView('deadlines');
+    preparaEditScadenza(id);
+    toast('Aggiorna la data e salva per rinnovare');
+}
+
+/* ── Init ── */
+window.addEventListener('load', () => {
+    updateForm();
+    checkSession();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+});
+</script>
+</body>
+</html>
