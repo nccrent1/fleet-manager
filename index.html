@@ -105,6 +105,9 @@
         /* ── Auth ───────────────────────────────── */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
 
+        /* ── Mobile top bar (nascosta su desktop) ── */
+        .mobile-bar { display: none; }
+
         /* ── Responsive tablet ──────────────────── */
         @media (max-width: 1150px) {
             body { overflow-y: auto !important; overflow-x: hidden !important; height: auto !important; }
@@ -118,22 +121,29 @@
 
         /* ── Responsive mobile ──────────────────── */
         @media (max-width: 768px) {
+            /* Barra fissa in alto */
+            .mobile-bar { display: flex !important; position: sticky; top: 0; z-index: 300; background: var(--panel); border-bottom: 2px solid var(--accent); padding: 10px 14px; gap: 8px; align-items: center; width: 100%; box-sizing: border-box; }
+            .mobile-bar .mob-title { font-weight: 900; color: var(--accent); font-size: 15px; flex: 1; }
+            .mobile-bar .mob-nav { display: flex; gap: 6px; }
+            /* Nascondi sidebar su mobile — tutto è nella mobile-bar */
+            .sidebar { display: none !important; }
+            /* Nascondi calendario */
             .agenda-panel { display: none !important; }
+            /* Form */
             .form-grid { grid-template-columns: 1fr !important; }
             .form-grid > * { grid-column: 1 / -1 !important; }
-            .data-row { display: flex !important; flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; padding: 12px !important; width: 100% !important; max-width: 100% !important; overflow: hidden !important; }
+            .form-container { padding: 14px !important; }
+            /* Righe dati: stack verticale */
+            .data-row { display: flex !important; flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; padding: 12px 14px !important; width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; }
             .deadline-row, .vehicle-row { grid-template-columns: none !important; }
             .plate-box { display: inline-block; width: auto; max-width: 100%; }
             .actions { flex-wrap: wrap; gap: 6px; width: 100%; }
             .filter-bar { flex-wrap: wrap; gap: 6px; }
-            .filter-bar input, .filter-bar select { width: 100%; }
+            .filter-bar input, .filter-bar select { width: 100%; box-sizing: border-box; }
             .stats-bar { gap: 6px; flex-wrap: wrap; }
-            .stat-card { padding: 8px; min-width: 80px; }
+            .stat-card { padding: 8px; flex: 1; min-width: 80px; }
             .stat-val { font-size: 20px; }
-            .sidebar { padding: 12px; }
-            .form-container { padding: 12px; }
-            .cat-item { font-size: 13px; overflow: hidden; }
-            .scroll-area { overflow-x: hidden !important; }
+            .scroll-area { overflow-x: hidden !important; padding-right: 0 !important; }
             main { overflow-x: hidden !important; max-width: 100% !important; }
         }
     </style>
@@ -154,6 +164,16 @@
 
 <!-- ── App ──────────────────────────────────────────── -->
 <div id="app-screen" class="grid-main" style="display:none;">
+
+    <!-- Barra mobile fissa (visibile solo su smartphone) -->
+    <div class="mobile-bar">
+        <span class="mob-title">🚗 FLEET</span>
+        <div class="mob-nav">
+            <button id="mob-nav-dl" class="nav-link active" style="padding:7px 12px; font-size:12px;" onclick="switchView('deadlines')">📅 SCADENZE</button>
+            <button id="mob-nav-fl" class="nav-link" style="padding:7px 12px; font-size:12px;" onclick="switchView('fleet')">🚗 MEZZI</button>
+        </div>
+        <button class="btn btn-red" style="font-size:11px; padding:7px 12px; white-space:nowrap;" onclick="signOut()">LOGOUT</button>
+    </div>
 
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -623,6 +643,8 @@ function switchView(v) {
     currentView = v;
     document.getElementById('nav-deadlines').classList.toggle('active', v === 'deadlines');
     document.getElementById('nav-fleet').classList.toggle('active', v === 'fleet');
+    document.getElementById('mob-nav-dl').classList.toggle('active', v === 'deadlines');
+    document.getElementById('mob-nav-fl').classList.toggle('active', v === 'fleet');
     document.getElementById('view-deadlines').style.display = v === 'deadlines' ? 'block' : 'none';
     document.getElementById('view-fleet').style.display = v === 'fleet' ? 'block' : 'none';
     updateForm();
