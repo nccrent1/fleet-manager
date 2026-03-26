@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Manager Pro | v2.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg: #050508; --panel: #0d0d12; --input-bg: #161620;
+            --accent: #e8ff47; --text: #f0f0f5; --text2: #8888a0;
+            --border: rgba(255,255,255,0.08);
+            --red: #ff4747; --orange: #ff9447; --green: #47ffb8; --blue: #47a0ff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; font-size: 15px; }
+
+        /* ── Layout ─────────────────────────────── */
+        .grid-main { display: grid; grid-template-columns: 270px 1fr 295px; gap: 14px; padding: 14px; height: 100vh; overflow: hidden; }
+
+        /* ── Sidebar ────────────────────────────── */
+        .sidebar { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 9px; overflow-y: auto; }
+        .nav-link { width: 100%; padding: 11px 14px; border-radius: 8px; color: var(--text2); text-align: left; cursor: pointer; font-weight: 700; border: 1px solid transparent; background: transparent; font-family: inherit; font-size: 14px; }
+        .nav-link.active { background: rgba(232,255,71,0.1); color: var(--accent); border-color: var(--accent); }
+        .cat-manager-box { background: rgba(255,255,255,0.03); padding: 11px; border-radius: 8px; border: 1px solid var(--border); margin-top: 8px; }
+        .cat-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+
+        /* ── Main ───────────────────────────────── */
+        main { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        .scroll-area { flex: 1; overflow-y: auto; padding-right: 4px; }
+        .form-container { background: var(--panel); border: 2px solid var(--accent); border-radius: 12px; padding: 14px; margin-bottom: 14px; flex-shrink: 0; }
+        .form-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 9px; }
+        label { font-size: 11px; color: var(--accent); font-weight: 800; text-transform: uppercase; margin-bottom: 2px; display: block; }
+        input, select { background: var(--input-bg); border: 1px solid var(--border); border-radius: 5px; padding: 9px; color: #fff; width: 100%; font-size: 14px; font-family: inherit; }
+        input::placeholder { color: var(--text2); }
+
+        /* ── Stats bar ──────────────────────────── */
+        .stats-bar { display: flex; gap: 9px; margin-bottom: 11px; }
+        .stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; flex: 1; text-align: center; }
+        .stat-val { font-size: 22px; font-weight: 900; color: var(--accent); display: block; }
+        .stat-lbl { font-size: 10px; color: var(--text2); text-transform: uppercase; font-weight: 700; }
+
+        /* ── Filter bar ─────────────────────────── */
+        .filter-bar { display: flex; gap: 7px; margin-bottom: 11px; }
+        .filter-bar input { flex: 1; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; font-size: 13px; }
+        .filter-bar select { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 9px; color: #fff; font-size: 13px; font-family: inherit; }
+
+        /* ── Data rows ──────────────────────────── */
+        .data-row { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; margin-bottom: 7px; display: grid; align-items: center; gap: 11px; }
+        .deadline-row { grid-template-columns: 92px 112px 105px 1fr 1fr 68px 190px; }
+        .vehicle-row { grid-template-columns: 108px 1fr 1fr 1fr 118px 100px; }
+        .plate-box { background: #fff; color: #000; padding: 4px 9px; border-radius: 4px; font-weight: 900; font-family: 'DM Mono', monospace; font-size: 14px; text-align: center; border: 2px solid #fff; }
+
+        /* ── Buttons ────────────────────────────── */
+        .btn { padding: 7px 11px; border-radius: 6px; border: none; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 11px; font-family: inherit; white-space: nowrap; transition: opacity 0.15s; }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .btn-acc { background: var(--accent); color: #000; }
+        .btn-blue { background: var(--blue); color: #fff; }
+        .btn-red { background: var(--red); color: #fff; }
+        .btn-orange { background: var(--orange); color: #000; }
+        .btn-ghost { background: rgba(255,255,255,0.06); color: var(--text2); border: 1px solid var(--border); }
+        .actions { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+        .reminder-btn { background: none; border: none; cursor: pointer; font-size: 15px; padding: 3px; opacity: 0.35; transition: opacity 0.15s; }
+        .reminder-btn.on { opacity: 1; }
+
+        /* ── Section titles ─────────────────────── */
+        .section-title { color: var(--accent); font-weight: 800; text-transform: uppercase; font-size: 12px; margin: 14px 0 9px; padding-left: 9px; border-left: 4px solid var(--accent); }
+
+        /* ── Empty state ────────────────────────── */
+        .empty { text-align: center; padding: 38px; color: var(--text2); }
+        .empty-icon { font-size: 34px; margin-bottom: 8px; }
+
+        /* ── Calendar ───────────────────────────── */
+        .agenda-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px; overflow-y: auto; }
+        .cal-month-title { color: var(--accent); font-size: 13px; font-weight: 800; text-transform: uppercase; margin: 14px 0 5px; text-align: center; background: rgba(255,255,255,0.03); padding: 5px; border-radius: 4px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; font-size: 11px; }
+        .cal-hdr { color: var(--text2); font-weight: 700; padding: 4px 0; }
+        .cal-day { padding: 6px 0; border-radius: 4px; background: rgba(255,255,255,0.02); color: var(--text2); }
+        .cal-empty { background: transparent !important; }
+        .cal-has-task { background: var(--accent) !important; color: #000 !important; font-weight: 900; }
+
+        /* ── Toast ──────────────────────────────── */
+        #toast-wrap { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 7px; pointer-events: none; }
+        .toast { padding: 11px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; min-width: 190px; animation: tIn .25s ease; }
+        .toast-ok  { background: var(--green); color: #000; }
+        .toast-err { background: var(--red);   color: #fff; }
+        @keyframes tIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* ── Modal ──────────────────────────────── */
+        #modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 8000; display: flex; align-items: center; justify-content: center; }
+        .modal-box { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 26px; max-width: 340px; width: 90%; text-align: center; }
+        .modal-box h3 { color: var(--accent); margin-bottom: 10px; }
+        .modal-box p { color: var(--text2); margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
+        .modal-acts { display: flex; gap: 9px; justify-content: center; }
+
+        /* ── Auth ───────────────────────────────── */
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+        /* ── Responsive ─────────────────────────── */
+        @media (max-width: 1150px) {
+            body { overflow-y: auto; height: auto; }
+            .grid-main { display: flex; flex-direction: column; height: auto; padding: 10px; }
+            .sidebar, main, .agenda-panel { width: 100%; height: auto; overflow: visible; }
+            .scroll-area { height: auto; overflow: visible; }
+            .form-grid { grid-template-columns: 1fr 1fr !important; }
+            .deadline-row, .vehicle-row { grid-template-columns: 1fr 1fr !important; gap: 8px; }
+            .stats-bar { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Auth ─────────────────────────────────────────── -->
+<div id="auth-screen">
+    <div style="background:var(--panel); padding:30px; border-radius:20px; border:1px solid var(--accent); width:100%; max-width:340px; text-align:center;">
+        <div style="font-size:32px; margin-bottom:6px;">🚗</div>
+        <h2 style="color:var(--accent); margin-bottom:20px; letter-spacing:1px;">FLEET MANAGER</h2>
+        <input type="email" id="auth-email" placeholder="Email" style="margin-bottom:10px;">
+        <input type="password" id="auth-pw" placeholder="Password" style="margin-bottom:18px;">
+        <button class="btn btn-acc" id="login-btn" style="width:100%; padding:14px; font-size:13px;" onclick="signIn()">ACCEDI</button>
+        <div id="auth-err" style="color:var(--red); font-size:13px; margin-top:10px; min-height:20px;"></div>
+    </div>
+</div>
+
+<!-- ── App ──────────────────────────────────────────── -->
+<div id="app-screen" class="grid-main" style="display:none;">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div id="user-display" style="font-weight:700; text-align:center; color:var(--accent); border:1px solid rgba(232,255,71,0.4); padding:9px; border-radius:8px; font-size:12px; word-break:break-all;">—</div>
+        <nav style="display:flex; flex-direction:column; gap:5px;">
+            <button id="nav-deadlines" class="nav-link active" onclick="switchView('deadlines')">📅 SCADENZE</button>
+            <button id="nav-fleet" class="nav-link" onclick="switchView('fleet')">🚗 ANAGRAFICA</button>
+        </nav>
+        <div class="cat-manager-box">
+            <label style="margin-bottom:8px;">Categorie</label>
+            <div style="display:flex; gap:5px; margin-bottom:9px;">
+                <input type="hidden" id="cId">
+                <input type="text" id="cName" placeholder="Nuova..." style="font-size:12px; padding:7px;" onkeydown="if(event.key==='Enter') salvaCategoria()">
+                <button class="btn btn-acc" onclick="salvaCategoria()" id="cBtn" style="padding:7px 12px;">+</button>
+            </div>
+            <div id="side-cat-list"></div>
+        </div>
+        <button class="btn btn-ghost" style="margin-top:auto; width:100%;" onclick="signOut()">LOGOUT</button>
+    </aside>
+
+    <!-- Main -->
+    <main>
+        <div class="form-container" id="form-content"></div>
+        <div class="scroll-area">
+
+            <!-- Deadlines view -->
+            <div id="view-deadlines">
+                <div class="stats-bar">
+                    <div class="stat-card"><span class="stat-val" id="stat-fleet">—</span><span class="stat-lbl">Veicoli</span></div>
+                    <div class="stat-card"><span class="stat-val" id="stat-exp" style="color:var(--orange)">—</span><span class="stat-lbl">Scadono 30gg</span></div>
+                    <div class="stat-card"><span class="stat-val" id="stat-over" style="color:var(--red)">—</span><span class="stat-lbl">Scadute</span></div>
+                </div>
+                <div class="filter-bar">
+                    <input type="text" id="filter-text" placeholder="🔍 Cerca targa, titolo, categoria..." oninput="applyFilters()">
+                    <select id="filter-cat" onchange="applyFilters()"><option value="">Tutte le categorie</option></select>
+                    <button class="btn btn-ghost" onclick="exportCSV()" title="Esporta CSV scadenze attive">📥 CSV</button>
+                </div>
+                <div class="section-title">Scadenze Attive</div>
+                <div id="listaAttive"></div>
+                <div class="section-title" style="opacity:0.5">Archivio</div>
+                <div id="listaPassate" style="opacity:0.45;"></div>
+            </div>
+
+            <!-- Fleet view -->
+            <div id="view-fleet" style="display:none;">
+                <div class="section-title">Parco Veicoli</div>
+                <div id="listaVeicoli"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Calendar -->
+    <aside class="agenda-panel">
+        <div class="section-title">Calendario</div>
+        <div id="cal-container"></div>
+    </aside>
+</div>
+
+<!-- ── Toast ─────────────────────────────────────────── -->
+<div id="toast-wrap"></div>
+
+<!-- ── Modal ─────────────────────────────────────────── -->
+<div id="modal-bg" style="display:none;">
+    <div class="modal-box">
+        <h3 id="modal-title">Conferma</h3>
+        <p id="modal-msg">Sei sicuro?</p>
+        <div class="modal-acts">
+            <button class="btn btn-ghost" onclick="closeModal()">Annulla</button>
+            <button class="btn btn-red" id="modal-ok">Conferma</button>
+        </div>
+    </div>
+</div>
+
+<script>
+'use strict';
+
+/* ── Config ───────────────────────────────────────────── */
+const S_URL = 'https://wconjpwblopqguiyjmsz.supabase.co';
+const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indjb25qcHdibG9wcWd1aXlqbXN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjE2OTAsImV4cCI6MjA5MDA5NzY5MH0.mc9ChkIRg13ntWUmg8KNpPW_J-fRwi07WsXsy7KpFZ0';
+const _sb   = supabase.createClient(S_URL, S_KEY);
+
+/* ── State ────────────────────────────────────────────── */
+let currentView = 'deadlines';
+let allTasks = [], fleet = [], categories = [], filteredTasks = [];
+let pendingRenew = null;
+
+/* ═══════════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════════ */
+function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── Toast ──────────────────────────────────────────── */
+function toast(msg, type = 'ok') {
+    const el = Object.assign(document.createElement('div'), { className: `toast toast-${type}`, textContent: msg });
+    document.getElementById('toast-wrap').appendChild(el);
+    setTimeout(() => { el.style.transition = 'opacity .3s'; el.style.opacity = 0; setTimeout(() => el.remove(), 320); }, 3000);
+}
+
+/* ── Modal ──────────────────────────────────────────── */
+let _modalCb = null;
+function confirm2(title, msg, cb, btnTxt = 'Elimina', btnCls = 'btn-red') {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-msg').textContent   = msg;
+    const ok = document.getElementById('modal-ok');
+    ok.textContent  = btnTxt;
+    ok.className    = `btn ${btnCls}`;
+    _modalCb = cb;
+    document.getElementById('modal-bg').style.display = 'flex';
+}
+function closeModal() { document.getElementById('modal-bg').style.display = 'none'; _modalCb = null; }
+document.getElementById('modal-ok').onclick = () => { if (_modalCb) _modalCb(); closeModal(); };
+document.getElementById('modal-bg').addEventListener('click', e => { if (e.target.id === 'modal-bg') closeModal(); });
+
+/* ═══════════════════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════════════════ */
+async function checkSession() {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (user) { await initApp(user); }
+}
+
+async function initApp(user) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display  = 'grid';
+    document.getElementById('user-display').textContent  = user.email;
+    updateForm();
+    await refreshData();
+    handleUrlParams();
+}
+
+async function signIn() {
+    const btn = document.getElementById('login-btn');
+    const err = document.getElementById('auth-err');
+    btn.disabled = true; btn.textContent = '...'; err.textContent = '';
+    const { data, error } = await _sb.auth.signInWithPassword({
+        email: document.getElementById('auth-email').value.trim(),
+        password: document.getElementById('auth-pw').value
+    });
+    if (error) { err.textContent = error.message; btn.disabled = false; btn.textContent = 'ACCEDI'; }
+    else { await initApp(data.user); }
+}
+
+async function signOut() { await _sb.auth.signOut(); location.reload(); }
+
+/* ═══════════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════════ */
+async function refreshData() {
+    try {
+        const [{ data: vData, error: ve }, { data: dData, error: de }, { data: cData, error: ce }] = await Promise.all([
+            _sb.from('vehicles').select('*').order('plate'),
+            _sb.from('deadlines').select('*').order('expiration_date'),
+            _sb.from('custom_categories').select('*').order('name')
+        ]);
+        if (ve) throw ve; if (de) throw de; if (ce) throw ce;
+        fleet      = vData || [];
+        allTasks   = dData || [];
+        categories = cData || [];
+        renderAll();
+    } catch (e) {
+        toast('Errore caricamento: ' + e.message, 'err');
+    }
+}
+
+function applyFilters() {
+    const txt = (document.getElementById('filter-text')?.value || '').toLowerCase();
+    const cat = document.getElementById('filter-cat')?.value || '';
+    filteredTasks = allTasks.filter(t => {
+        const ok1 = !txt || [t.plate, t.title, t.category, t.notes].some(f => (f || '').toLowerCase().includes(txt));
+        const ok2 = !cat || t.category === cat;
+        return ok1 && ok2;
+    });
+    renderDeadlines();
+    renderStats();
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════ */
+function renderAll() {
+    /* category sidebar */
+    document.getElementById('side-cat-list').innerHTML = categories.map(c =>
+        `<div class="cat-item">
+            <b>${esc(c.name)}</b>
+            <div style="display:flex;gap:10px;">
+                <span style="color:var(--blue);cursor:pointer;" data-editcat="${esc(c.id)}" data-catname="${esc(c.name)}">E</span>
+                <span style="color:var(--red);cursor:pointer;"  data-delcat="${esc(c.id)}">X</span>
+            </div>
+        </div>`
+    ).join('');
+
+    /* category filter dropdown — preserve selection */
+    const fc = document.getElementById('filter-cat');
+    if (fc) {
+        const prev = fc.value;
+        fc.innerHTML = '<option value="">Tutte le categorie</option>' +
+            categories.map(c => `<option value="${esc(c.name)}" ${prev === c.name ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+    }
+
+    renderCalendars();
+    renderFleet();
+    applyFilters();
+
+    if (pendingRenew) checkPendingRenew();
+}
+
+/* ── Stats ──────────────────────────────────────────── */
+function renderStats() {
+    const now  = Date.now();
+    const in30 = now + 30 * 86400000;
+    const active = allTasks.filter(t => !t.is_completed);
+    const exp  = active.filter(t => { const d = new Date(t.expiration_date).getTime(); return d >= now && d <= in30; }).length;
+    const over = active.filter(t => new Date(t.expiration_date).getTime() < now).length;
+    document.getElementById('stat-fleet').textContent = fleet.length;
+    document.getElementById('stat-exp').textContent   = exp;
+    document.getElementById('stat-over').textContent  = over;
+}
+
+/* ── Calendar ───────────────────────────────────────── */
+function renderCalendars() {
+    const nomi = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+    const hdrs = ['L','M','M','G','V','S','D'];
+    const today = new Date();
+
+    const renderMese = (ref) => {
+        const m = ref.getMonth(), y = ref.getFullYear();
+        const ultimo = new Date(y, m + 1, 0).getDate();
+        const offset = ((new Date(y, m, 1).getDay() + 6) % 7); // Mon-based offset
+
+        const activeDays = new Set(
+            allTasks
+                .filter(t => !t.is_completed && new Date(t.expiration_date).getMonth() === m && new Date(t.expiration_date).getFullYear() === y)
+                .map(t => new Date(t.expiration_date).getDate())
+        );
+
+        let h = `<div class="cal-month-title">${nomi[m]} ${y}</div><div class="cal-grid">`;
+        hdrs.forEach(g => { h += `<div class="cal-hdr">${g}</div>`; });
+        for (let i = 0; i < offset; i++) h += `<div class="cal-day cal-empty"></div>`;
+        for (let d = 1; d <= ultimo; d++) {
+            h += `<div class="cal-day ${activeDays.has(d) ? 'cal-has-task' : ''}">${d}</div>`;
+        }
+        return h + '</div>';
+    };
+
+    document.getElementById('cal-container').innerHTML =
+        renderMese(today) +
+        renderMese(new Date(today.getFullYear(), today.getMonth() + 1, 1));
+}
+
+/* ── Deadlines ──────────────────────────────────────── */
+function renderDeadlines() {
+    const active = filteredTasks.filter(t => !t.is_completed);
+    const done   = filteredTasks.filter(t =>  t.is_completed);
+
+    document.getElementById('listaAttive').innerHTML = active.length
+        ? active.map(deadlineRow).join('')
+        : `<div class="empty"><div class="empty-icon">📭</div>Nessuna scadenza attiva</div>`;
+
+    document.getElementById('listaPassate').innerHTML = done.map(deadlineRow).join('');
+}
+
+function deadlineRow(t) {
+    const now  = Date.now();
+    const exp  = new Date(t.expiration_date).getTime();
+    const diff = Math.ceil((exp - now) / 86400000);
+
+    let dayColor = 'var(--green)', dayLabel = diff + ' gg';
+    if (t.is_completed)     { dayColor = 'var(--text2)'; dayLabel = 'OK'; }
+    else if (diff < 0)      { dayColor = 'var(--red)';   dayLabel = Math.abs(diff) + 'gg fa'; }
+    else if (diff < 7)      { dayColor = 'var(--red)'; }
+    else if (diff < 30)     { dayColor = 'var(--orange)'; }
+
+    const rem = t.reminder_active !== false;
+
+    return `<div class="data-row deadline-row">
+        <div style="font-weight:800;font-size:13px;">${new Date(t.expiration_date).toLocaleDateString('it-IT')}</div>
+        <div style="color:var(--accent);font-weight:700;font-size:12px;">${esc(t.category)}</div>
+        <div class="plate-box">${esc(t.plate)}</div>
+        <div style="font-weight:700;font-size:14px;">${esc(t.title)}</div>
+        <div style="color:var(--text2);font-size:13px;">${esc(t.notes || '')}</div>
+        <div style="font-weight:900;color:${dayColor};font-size:13px;">${dayLabel}</div>
+        <div class="actions">
+            ${!t.is_completed
+                ? `<button class="btn btn-acc"   data-a="done"  data-id="${t.id}">OK</button>
+                   <button class="btn btn-blue"  data-a="edit"  data-id="${t.id}">EDIT</button>`
+                : `<button class="btn btn-ghost" data-a="reopen" data-id="${t.id}">RIAPRI</button>`}
+            <button class="btn btn-red" data-a="del" data-id="${t.id}">X</button>
+            <button class="reminder-btn ${rem ? 'on' : ''}" data-a="bell" data-id="${t.id}" title="${rem ? 'Disattiva promemoria' : 'Attiva promemoria'}">${rem ? '🔔' : '🔕'}</button>
+        </div>
+    </div>`;
+}
+
+/* ── Fleet ──────────────────────────────────────────── */
+function renderFleet() {
+    document.getElementById('listaVeicoli').innerHTML = fleet.length
+        ? fleet.map(v => `<div class="data-row vehicle-row">
+            <div class="plate-box">${esc(v.plate)}</div>
+            <div style="font-weight:700;">${esc((v.brand||'').toUpperCase())}</div>
+            <div>${esc((v.model||'').toUpperCase())}</div>
+            <div style="font-size:12px;color:var(--blue);">${esc(v.vin||'—')}</div>
+            <div style="font-size:13px;">Gomme: ${esc(v.tire_size||'—')}</div>
+            <div class="actions">
+                <button class="btn btn-blue" data-a="vedit" data-vid="${v.id}">EDIT</button>
+                <button class="btn btn-red"  data-a="vdel"  data-vid="${v.id}">X</button>
+            </div>
+        </div>`).join('')
+        : `<div class="empty"><div class="empty-icon">🚗</div>Nessun veicolo registrato</div>`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   EVENT DELEGATION
+═══════════════════════════════════════════════════════ */
+document.addEventListener('click', e => {
+    /* Deadline actions */
+    const btn = e.target.closest('[data-a]');
+    if (btn) {
+        const a = btn.dataset.a, id = btn.dataset.id, vid = btn.dataset.vid;
+        if      (a === 'done')   segnaFatto(id);
+        else if (a === 'edit')   preparaEditScadenza(id);
+        else if (a === 'reopen') riapriFatto(id);
+        else if (a === 'del')    eliminaScadenza(id);
+        else if (a === 'bell')   toggleReminder(id);
+        else if (a === 'vedit')  preparaEditVeicolo(vid);
+        else if (a === 'vdel')   eliminaVeicolo(vid);
+        return;
+    }
+    /* Category actions */
+    const ec = e.target.closest('[data-editcat]');
+    if (ec) { editCat(ec.dataset.editcat, ec.dataset.catname); return; }
+    const dc = e.target.closest('[data-delcat]');
+    if (dc) { eliminaCategoria(dc.dataset.delcat); }
+});
+
+/* ═══════════════════════════════════════════════════════
+   DEADLINE ACTIONS
+═══════════════════════════════════════════════════════ */
+async function segnaFatto(id) {
+    const { error } = await _sb.from('deadlines').update({ is_completed: true }).eq('id', id);
+    if (error) { toast('Errore: ' + error.message, 'err'); return; }
+    toast('Scadenza completata ✓');
+    refreshData();
+}
+
+async function riapriFatto(id) {
+    const { error } = await _sb.from('deadlines').update({ is_completed: false }).eq('id', id);
+    if (error) { toast('Errore: ' + error.message, 'err'); return; }
+    toast('Scadenza riaperta');
+    refreshData();
+}
+
+async function eliminaScadenza(id) {
+    const t = allTasks.find(x => x.id === id);
+    confirm2(
+        'Elimina scadenza',
+        `Eliminare "${t?.title || '—'}" per il veicolo ${t?.plate || '—'}?`,
+        async () => {
+            const { error } = await _sb.from('deadlines').delete().eq('id', id);
+            if (error) { toast('Errore: ' + error.message, 'err'); return; }
+            toast('Scadenza eliminata');
+            refreshData();
+        }
+    );
+}
+
+async function toggleReminder(id) {
+    const t = allTasks.find(x => x.id === id);
+    if (!t) return;
+    const newVal = !(t.reminder_active !== false);
+    const { error } = await _sb.from('deadlines').update({ reminder_active: newVal }).eq('id', id);
+    if (error) { toast('Errore: ' + error.message, 'err'); return; }
+    toast(newVal ? 'Promemoria attivato 🔔' : 'Promemoria disattivato 🔕');
+    refreshData();
+}
+
+async function salvaScadenza() {
+    const id      = document.getElementById('editId').value;
+    const payload = {
+        plate:           document.getElementById('fPlate').value,
+        category:        document.getElementById('fCat').value,
+        title:           document.getElementById('fTitle').value,
+        expiration_date: document.getElementById('fDate').value,
+        notes:           document.getElementById('fNote').value
+    };
+    if (!payload.plate || !payload.expiration_date || !payload.title) {
+        toast('Targa, titolo e data sono obbligatori', 'err'); return;
+    }
+    const btn = document.getElementById('save-dl-btn');
+    btn.disabled = true; btn.textContent = '...';
+
+    let error;
+    if (id) {
+        ({ error } = await _sb.from('deadlines').update(payload).eq('id', id));
+    } else {
+        const { data: { user } } = await _sb.auth.getUser();
+        ({ error } = await _sb.from('deadlines').insert([{
+            ...payload, user_id: user.id, target_email: user.email,
+            reminder_active: true
+        }]));
+    }
+
+    btn.disabled = false; btn.textContent = id ? 'AGGIORNA SCADENZA' : 'SALVA SCADENZA';
+    if (error) { toast('Errore: ' + error.message, 'err'); return; }
+    toast(id ? 'Scadenza aggiornata ✓' : 'Scadenza salvata ✓');
+    document.getElementById('editId').value = '';
+    btn.textContent = 'SALVA SCADENZA';
+    refreshData();
+}
+
+function preparaEditScadenza(id) {
+    const t = allTasks.find(x => x.id === id);
+    if (!t) return;
+    document.getElementById('editId').value = t.id;
+    document.getElementById('fPlate').value  = t.plate;
+    document.getElementById('fCat').value    = t.category;
+    document.getElementById('fTitle').value  = t.title;
+    document.getElementById('fDate').value   = t.expiration_date;
+    document.getElementById('fNote').value   = t.notes || '';
+    document.getElementById('save-dl-btn').textContent = 'AGGIORNA SCADENZA';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ═══════════════════════════════════════════════════════
+   VEHICLE ACTIONS
+═══════════════════════════════════════════════════════ */
+async function salvaVeicolo() {
+    const id      = document.getElementById('vId').value;
+    const payload = {
+        plate:     document.getElementById('vPlate').value.toUpperCase().trim(),
+        brand:     document.getElementById('vBrand').value.trim(),
+        model:     document.getElementById('vModel').value.trim(),
+        vin:       document.getElementById('vVin').value.trim(),
+        tire_size: document.getElementById('vTires').value.trim()
+    };
+    if (!payload.plate || !payload.brand) { toast('Targa e marca obbligatorie', 'err'); return; }
+    const btn = document.getElementById('vBtn');
+    btn.disabled = true; btn.textContent = '...';
+
+    let error;
+    if (id) {
+        ({ error } = await _sb.from('vehicles').update(payload).eq('id', id));
+    } else {
+        const { data: { user } } = await _sb.auth.getUser();
+        ({ error } = await _sb.from('vehicles').insert([{ ...payload, user_id: user.id }]));
+    }
+
+    btn.disabled = false;
+    if (error) { toast('Errore: ' + error.message, 'err'); btn.textContent = id ? 'AGGIORNA' : 'REGISTRA'; return; }
+    toast(id ? 'Veicolo aggiornato ✓' : 'Veicolo registrato ✓');
+    document.getElementById('vId').value = '';
+    btn.textContent = 'REGISTRA';
+    refreshData();
+}
+
+function preparaEditVeicolo(id) {
+    const v = fleet.find(x => x.id === id);
+    if (!v) return;
+    document.getElementById('vId').value    = v.id;
+    document.getElementById('vPlate').value = v.plate;
+    document.getElementById('vBrand').value = v.brand;
+    document.getElementById('vModel').value = v.model;
+    document.getElementById('vVin').value   = v.vin   || '';
+    document.getElementById('vTires').value = v.tire_size || '';
+    document.getElementById('vBtn').textContent = 'AGGIORNA';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function eliminaVeicolo(id) {
+    const v = fleet.find(x => x.id === id);
+    confirm2(
+        'Elimina veicolo',
+        `Eliminare il veicolo ${v?.plate || '—'}? Le scadenze associate non saranno eliminate.`,
+        async () => {
+            const { error } = await _sb.from('vehicles').delete().eq('id', id);
+            if (error) { toast('Errore: ' + error.message, 'err'); return; }
+            toast('Veicolo eliminato');
+            refreshData();
+        }
+    );
+}
+
+/* ═══════════════════════════════════════════════════════
+   CATEGORIES
+═══════════════════════════════════════════════════════ */
+async function salvaCategoria() {
+    const id   = document.getElementById('cId').value;
+    const name = document.getElementById('cName').value.trim();
+    if (!name) return;
+
+    let error;
+    if (id) {
+        ({ error } = await _sb.from('custom_categories').update({ name }).eq('id', id));
+    } else {
+        const { data: { user } } = await _sb.auth.getUser();
+        ({ error } = await _sb.from('custom_categories').insert([{ name, user_id: user.id }]));
+    }
+    if (error) { toast('Errore: ' + error.message, 'err'); return; }
+    document.getElementById('cId').value = '';
+    document.getElementById('cName').value = '';
+    document.getElementById('cBtn').textContent = '+';
+    toast(id ? 'Categoria aggiornata' : 'Categoria aggiunta');
+    refreshData();
+}
+
+function editCat(id, name) {
+    document.getElementById('cId').value  = id;
+    document.getElementById('cName').value = name;
+    document.getElementById('cBtn').textContent = '✓';
+}
+
+async function eliminaCategoria(id) {
+    confirm2('Elimina categoria', 'Eliminare questa categoria?', async () => {
+        const { error } = await _sb.from('custom_categories').delete().eq('id', id);
+        if (error) { toast('Errore: ' + error.message, 'err'); return; }
+        toast('Categoria eliminata');
+        refreshData();
+    });
+}
+
+/* ═══════════════════════════════════════════════════════
+   FORM
+═══════════════════════════════════════════════════════ */
+function updateForm() {
+    const c = document.getElementById('form-content');
+    if (currentView === 'deadlines') {
+        c.innerHTML = `<div class="form-grid">
+            <input type="hidden" id="editId">
+            <div style="grid-column:span 2"><label>Mezzo</label>
+                <select id="fPlate">${fleet.map(v => `<option value="${esc(v.plate)}">${esc(v.plate)}</option>`).join('')}</select></div>
+            <div style="grid-column:span 2"><label>Categoria</label>
+                <select id="fCat">${categories.map(cat => `<option value="${esc(cat.name)}">${esc(cat.name)}</option>`).join('')}</select></div>
+            <div style="grid-column:span 2"><label>Scadenza</label><input type="date" id="fDate"></div>
+            <div style="grid-column:span 3"><label>Titolo</label><input type="text" id="fTitle" placeholder="es. Revisione, Assicurazione..."></div>
+            <div style="grid-column:span 3"><label>Note</label><input type="text" id="fNote" placeholder="Opzionale"></div>
+            <div style="grid-column:span 6">
+                <button class="btn btn-acc" id="save-dl-btn" style="width:100%;padding:11px;" onclick="salvaScadenza()">SALVA SCADENZA</button>
+            </div>
+        </div>`;
+    } else {
+        c.innerHTML = `<div class="form-grid">
+            <input type="hidden" id="vId">
+            <div><label>Targa</label><input type="text" id="vPlate" placeholder="AB123CD"></div>
+            <div><label>Marca</label><input type="text" id="vBrand" placeholder="es. Fiat"></div>
+            <div><label>Modello</label><input type="text" id="vModel" placeholder="es. Ducato"></div>
+            <div><label>VIN / Telaio</label><input type="text" id="vVin"></div>
+            <div><label>Gomme</label><input type="text" id="vTires" placeholder="es. 225/65 R16C"></div>
+            <div style="display:flex;align-items:flex-end;">
+                <button class="btn btn-blue" id="vBtn" style="width:100%;padding:11px;" onclick="salvaVeicolo()">REGISTRA</button>
+            </div>
+        </div>`;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════
+   VIEW SWITCH
+═══════════════════════════════════════════════════════ */
+function switchView(v) {
+    currentView = v;
+    document.getElementById('nav-deadlines').classList.toggle('active', v === 'deadlines');
+    document.getElementById('nav-fleet').classList.toggle('active', v === 'fleet');
+    document.getElementById('view-deadlines').style.display = v === 'deadlines' ? 'block' : 'none';
+    document.getElementById('view-fleet').style.display     = v === 'fleet'      ? 'block' : 'none';
+    updateForm();
+}
+
+/* ═══════════════════════════════════════════════════════
+   EXPORT CSV
+═══════════════════════════════════════════════════════ */
+function exportCSV() {
+    const rows = [['Targa','Categoria','Titolo','Scadenza','Note','Giorni rimanenti']];
+    allTasks.filter(t => !t.is_completed).forEach(t => {
+        const diff = Math.ceil((new Date(t.expiration_date) - new Date()) / 86400000);
+        rows.push([t.plate, t.category, t.title, t.expiration_date, t.notes || '', diff]);
+    });
+    const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const a    = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `scadenze_${new Date().toISOString().slice(0,10)}.csv`
+    });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast('CSV esportato ✓');
+}
+
+/* ═══════════════════════════════════════════════════════
+   URL PARAMS  (link email → rinnova scadenza)
+═══════════════════════════════════════════════════════ */
+function handleUrlParams() {
+    const p      = new URLSearchParams(window.location.search);
+    const action = p.get('action');
+    const id     = p.get('id');
+    const token  = p.get('token');
+    if (action === 'renew' && id && token) {
+        pendingRenew = { id, token };
+        window.history.replaceState({}, '', window.location.pathname);
+    }
+}
+
+async function checkPendingRenew() {
+    if (!pendingRenew) return;
+    const { id, token } = pendingRenew;
+    pendingRenew = null;
+
+    const { data, error } = await _sb.from('deadlines')
+        .select('*').eq('id', id).eq('reminder_token', token).maybeSingle();
+
+    if (error || !data) { toast('Link non valido o già usato', 'err'); return; }
+
+    if (currentView !== 'deadlines') switchView('deadlines');
+    preparaEditScadenza(id);
+    toast('Aggiorna la data di scadenza e salva per rinnovare');
+}
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+window.addEventListener('load', () => { updateForm(); checkSession(); });
+</script>
+</body>
+</html>
