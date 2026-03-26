@@ -106,30 +106,21 @@
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .app-hidden { display: none !important; }
 
-        /* ── Responsive tablet ──────────────────── */
-        @media (max-width: 1150px) {
-            body { overflow-y: auto; height: auto; }
-            .grid-main { display: flex; flex-direction: column; height: auto; padding: 10px; }
-            .sidebar, main, .agenda-panel { width: 100%; height: auto; overflow: visible; }
-            .scroll-area { height: auto; overflow: visible; }
-            .form-grid { grid-template-columns: 1fr 1fr !important; }
-            .deadline-row, .vehicle-row { grid-template-columns: 1fr 1fr !important; gap: 8px; }
-            .stats-bar { flex-wrap: wrap; }
-        }
-        /* ── Responsive mobile ──────────────────── */
-        @media (max-width: 768px) {
-            .agenda-panel { display: none; }
-            .form-grid { grid-template-columns: 1fr !important; }
-            .deadline-row, .vehicle-row { display: flex; flex-direction: column; gap: 6px; padding: 12px; }
-            .plate-box { display: inline-block; width: auto; }
-            .actions { flex-wrap: wrap; }
-            .stats-bar { gap: 6px; }
-            .stat-card { padding: 8px 10px; }
-            .stat-val { font-size: 18px; }
-            .filter-bar { flex-wrap: wrap; }
-            .sidebar { padding: 12px; }
-            .form-container { padding: 12px; }
-        }
+    /* ── Responsive ─────────────────────────── */
+@media (max-width: 1150px) {
+    body { overflow-y: auto; height: auto; }
+    .grid-main { display: flex !important; flex-direction: column !important; height: auto; padding: 10px; }
+    .sidebar, main, .agenda-panel { width: 100%; height: auto; overflow: visible; }
+    .scroll-area { height: auto; overflow: visible; }
+    .stats-bar { flex-wrap: wrap; }
+}
+@media (max-width: 768px) {
+    .agenda-panel { display: none; }
+    .form-grid { grid-template-columns: 1fr !important; }
+    .deadline-row, .vehicle-row { display: flex !important; flex-direction: column; gap: 6px; padding: 12px; }
+    .actions { flex-wrap: wrap; }
+    .filter-bar { flex-wrap: wrap; }
+}
     </style>
 </head>
 <body>
@@ -147,8 +138,7 @@
 </div>
 
 <!-- ── App ──────────────────────────────────────────── -->
-<div id="app-screen" class="grid-main app-hidden">
-
+<div id="app-screen" class="grid-main" style="display:none;">
     <!-- Sidebar -->
     <aside class="sidebar">
         <div id="user-display" style="font-weight:700; text-align:center; color:var(--accent); border:1px solid rgba(232,255,71,0.4); padding:9px; border-radius:8px; font-size:12px; word-break:break-all;">—</div>
@@ -273,7 +263,7 @@ async function checkSession() {
 
 async function initApp(user) {
     document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app-screen').classList.remove('app-hidden');
+    document.getElementById('app-screen').style.display = '';
     document.getElementById('user-display').textContent  = user.email;
     updateForm();
     await refreshData();
