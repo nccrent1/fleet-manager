@@ -522,7 +522,7 @@ async function salvaScadenza() {
     } else {
         const { data: { user } } = await _sb.auth.getUser();
         ({ error } = await _sb.from('deadlines').insert([{
-            ...payload, user_id: user.id, target_email: user.email,
+            ...payload, user_id: user.id, target_email: 'nccrentsas@gmail.com',
             reminder_active: true
         }]));
     }
