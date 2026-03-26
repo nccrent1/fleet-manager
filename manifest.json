@@ -1,0 +1,19 @@
+{
+  "name": "Fleet Manager Pro",
+  "short_name": "Fleet",
+  "description": "Gestione scadenze parco veicoli NCC Rent",
+  "start_url": "/fleet-manager/",
+  "scope": "/fleet-manager/",
+  "display": "standalone",
+  "background_color": "#050508",
+  "theme_color": "#e8ff47",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
