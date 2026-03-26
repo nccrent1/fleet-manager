@@ -1,5 +1,5 @@
-// Fleet Manager Pro — Service Worker
-const CACHE = 'fleet-v1';
+// Fleet Manager Pro — Service Worker v3
+const CACHE = 'fleet-v3';
 const ASSETS = ['/fleet-manager/', '/fleet-manager/index.html'];
 
 self.addEventListener('install', e => {
@@ -15,12 +15,25 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Per le chiamate API (Supabase/Resend) vai sempre in rete
+  // API calls: sempre rete
   if (e.request.url.includes('supabase.co') || e.request.url.includes('resend.com')) {
     e.respondWith(fetch(e.request));
     return;
   }
-  // Per tutto il resto: cache first, poi rete
+  // HTML: network-first → sempre versione aggiornata, fallback cache se offline
+  if (e.request.mode === 'navigate' ||
+      e.request.url.endsWith('.html') ||
+      e.request.url.endsWith('/fleet-manager/')) {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+        return res;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
+  // Tutto il resto: cache-first
   e.respondWith(
     caches.match(e.request).then(r => r || fetch(e.request).then(res => {
       const clone = res.clone();
