@@ -110,41 +110,63 @@
 
         /* ── Responsive tablet ──────────────────── */
         @media (max-width: 1150px) {
-            body { overflow-y: auto !important; overflow-x: hidden !important; height: auto !important; }
-            .grid-main { display: flex !important; flex-direction: column !important; height: auto !important; padding: 10px !important; overflow-x: hidden !important; overflow-y: visible !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
-            main { height: auto !important; overflow-x: hidden !important; overflow-y: visible !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
-            .scroll-area { height: auto !important; overflow-x: hidden !important; overflow-y: visible !important; width: 100% !important; max-width: 100% !important; }
-            .sidebar, main, .agenda-panel { width: 100% !important; max-width: 100% !important; height: auto; overflow-x: hidden !important; box-sizing: border-box !important; }
-            .form-container { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
-            .stats-bar { flex-wrap: wrap; }
+            html, body { overflow-x: hidden !important; }
+            body { overflow-y: auto !important; height: auto !important; }
+            .grid-main { display: flex !important; flex-direction: column !important; height: auto !important; padding: 12px !important; overflow-x: hidden !important; width: 100% !important; box-sizing: border-box !important; }
+            main { height: auto !important; overflow: visible !important; width: 100% !important; box-sizing: border-box !important; }
+            .scroll-area { height: auto !important; overflow-x: hidden !important; overflow-y: visible !important; width: 100% !important; box-sizing: border-box !important; }
+            .sidebar, main, .agenda-panel { width: 100% !important; height: auto !important; box-sizing: border-box !important; }
+            .form-container, .data-row, .stats-bar, .filter-bar { width: 100% !important; box-sizing: border-box !important; }
         }
 
         /* ── Responsive mobile ──────────────────── */
         @media (max-width: 768px) {
-            /* Barra fissa in alto */
-            .mobile-bar { display: flex !important; position: sticky; top: 0; z-index: 300; background: var(--panel); border-bottom: 2px solid var(--accent); padding: 10px 14px; gap: 8px; align-items: center; width: 100%; box-sizing: border-box; }
-            .mobile-bar .mob-title { font-weight: 900; color: var(--accent); font-size: 15px; flex: 1; }
-            .mobile-bar .mob-nav { display: flex; gap: 6px; }
-            /* Nascondi sidebar su mobile — tutto è nella mobile-bar */
+            /* Barra fissa in cima — sempre visibile */
+            .mobile-bar {
+                display: flex !important;
+                position: fixed !important;
+                top: 0; left: 0; right: 0;
+                z-index: 500;
+                background: var(--panel);
+                border-bottom: 2px solid var(--accent);
+                padding: 10px 12px;
+                gap: 6px;
+                align-items: center;
+                box-sizing: border-box;
+            }
+            .mobile-bar .mob-title { font-weight: 900; color: var(--accent); font-size: 14px; flex: 1; white-space: nowrap; }
+            .mobile-bar .mob-nav { display: flex; gap: 4px; }
+            /* Spazio per la barra fissa */
+            .grid-main { padding-top: 58px !important; }
+            /* Nascondi sidebar su mobile */
             .sidebar { display: none !important; }
             /* Nascondi calendario */
             .agenda-panel { display: none !important; }
-            /* Form */
-            .form-grid { grid-template-columns: 1fr !important; }
+            /* Form: colonna singola */
+            .form-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
             .form-grid > * { grid-column: 1 / -1 !important; }
-            .form-container { padding: 14px !important; }
-            /* Righe dati: stack verticale */
-            .data-row { display: flex !important; flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; padding: 12px 14px !important; width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; }
-            .deadline-row, .vehicle-row { grid-template-columns: none !important; }
-            .plate-box { display: inline-block; width: auto; max-width: 100%; }
-            .actions { flex-wrap: wrap; gap: 6px; width: 100%; }
-            .filter-bar { flex-wrap: wrap; gap: 6px; }
-            .filter-bar input, .filter-bar select { width: 100%; box-sizing: border-box; }
-            .stats-bar { gap: 6px; flex-wrap: wrap; }
-            .stat-card { padding: 8px; flex: 1; min-width: 80px; }
-            .stat-val { font-size: 20px; }
-            .scroll-area { overflow-x: hidden !important; padding-right: 0 !important; }
-            main { overflow-x: hidden !important; max-width: 100% !important; }
+            .form-container { padding: 14px !important; border-radius: 10px !important; }
+            /* Righe scadenze/veicoli: stack verticale */
+            .data-row {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 5px !important;
+                padding: 12px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+            }
+            .deadline-row, .vehicle-row { grid-template-columns: unset !important; }
+            .plate-box { display: inline-block !important; width: auto !important; }
+            .actions { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; width: 100% !important; }
+            /* Filtri */
+            .filter-bar { flex-wrap: wrap !important; gap: 6px !important; }
+            .filter-bar input, .filter-bar select { width: 100% !important; box-sizing: border-box !important; }
+            /* Statistiche */
+            .stats-bar { flex-wrap: wrap !important; gap: 6px !important; }
+            .stat-card { flex: 1 !important; min-width: 80px !important; padding: 8px !important; }
+            .stat-val { font-size: 18px !important; }
         }
     </style>
 </head>
