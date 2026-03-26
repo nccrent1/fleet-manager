@@ -104,8 +104,9 @@
 
         /* ── Auth ───────────────────────────────── */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .app-hidden { display: none !important; }
 
-        /* ── Responsive ─────────────────────────── */
+        /* ── Responsive tablet ──────────────────── */
         @media (max-width: 1150px) {
             body { overflow-y: auto; height: auto; }
             .grid-main { display: flex; flex-direction: column; height: auto; padding: 10px; }
@@ -114,6 +115,20 @@
             .form-grid { grid-template-columns: 1fr 1fr !important; }
             .deadline-row, .vehicle-row { grid-template-columns: 1fr 1fr !important; gap: 8px; }
             .stats-bar { flex-wrap: wrap; }
+        }
+        /* ── Responsive mobile ──────────────────── */
+        @media (max-width: 768px) {
+            .agenda-panel { display: none; }
+            .form-grid { grid-template-columns: 1fr !important; }
+            .deadline-row, .vehicle-row { display: flex; flex-direction: column; gap: 6px; padding: 12px; }
+            .plate-box { display: inline-block; width: auto; }
+            .actions { flex-wrap: wrap; }
+            .stats-bar { gap: 6px; }
+            .stat-card { padding: 8px 10px; }
+            .stat-val { font-size: 18px; }
+            .filter-bar { flex-wrap: wrap; }
+            .sidebar { padding: 12px; }
+            .form-container { padding: 12px; }
         }
     </style>
 </head>
@@ -132,7 +147,7 @@
 </div>
 
 <!-- ── App ──────────────────────────────────────────── -->
-<div id="app-screen" class="grid-main" style="display:none;">
+<div id="app-screen" class="grid-main app-hidden">
 
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -258,7 +273,7 @@ async function checkSession() {
 
 async function initApp(user) {
     document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display  = 'grid';
+    document.getElementById('app-screen').classList.remove('app-hidden');
     document.getElementById('user-display').textContent  = user.email;
     updateForm();
     await refreshData();
