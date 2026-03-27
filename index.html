@@ -337,18 +337,19 @@ async function checkSession() {
 
 function applyMobileLayout() {
     if (window.innerWidth > 768) return;
-    const m = '10px';
-    const w = `calc(100vw - 20px)`;
+    const vw = window.innerWidth;
+    const m = 10;
+    const w = (vw - m * 2) + 'px';
     document.querySelectorAll('.form-container,.stats-bar,.filter-bar,.section-title,.data-row,.empty,.scroll-area').forEach(el => {
         el.style.setProperty('width', w, 'important');
         el.style.setProperty('max-width', w, 'important');
-        el.style.setProperty('margin-left', m, 'important');
-        el.style.setProperty('margin-right', m, 'important');
+        el.style.setProperty('margin-left', m + 'px', 'important');
+        el.style.setProperty('margin-right', m + 'px', 'important');
         el.style.setProperty('box-sizing', 'border-box', 'important');
         el.style.setProperty('overflow-x', 'hidden', 'important');
     });
     const gm = document.querySelector('.grid-main');
-    if (gm) { gm.style.setProperty('overflow-x', 'hidden', 'important'); gm.style.setProperty('width', '100vw', 'important'); }
+    if (gm) { gm.style.setProperty('overflow-x', 'hidden', 'important'); gm.style.setProperty('width', vw + 'px', 'important'); gm.style.setProperty('max-width', vw + 'px', 'important'); }
 }
 
 async function initApp(user) {
