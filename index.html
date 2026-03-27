@@ -137,14 +137,14 @@
             .mobile-bar .mob-title { font-weight: 900; color: var(--accent); font-size: 13px; white-space: nowrap; }
             .mobile-bar .mob-nav { display: flex; gap: 4px; flex: 1; justify-content: center; }
             .mobile-bar .nav-link { width: auto !important; padding: 6px 10px !important; font-size: 11px !important; white-space: nowrap; }
-            /* Griglia: solo padding-top per la barra fissa, zero laterale */
+            /* Griglia: padding-top per barra fissa + 16px laterale */
             .grid-main { padding: 58px 16px 16px !important; box-sizing: border-box !important; width: 100% !important; }
             /* Nascondi sidebar e calendario */
             .sidebar { display: none !important; }
             .agenda-panel { display: none !important; }
-            /* scroll-area: rimuove padding desktop */
+            /* scroll-area: nessun padding extra */
             .scroll-area { width: 100% !important; padding: 0 !important; box-sizing: border-box !important; overflow-x: hidden !important; }
-            /* main occupa tutta la larghezza, padding interno di 16px per lato */
+            /* main: nessun padding extra, eredita da grid-main */
             main {
                 width: 100% !important;
                 max-width: 100% !important;
