@@ -138,7 +138,7 @@
             .mobile-bar .mob-nav { display: flex; gap: 4px; flex: 1; justify-content: center; }
             .mobile-bar .nav-link { width: auto !important; padding: 6px 10px !important; font-size: 11px !important; white-space: nowrap; }
             /* Griglia: solo padding-top per la barra fissa, zero laterale */
-            .grid-main { padding: 0 !important; padding-top: 58px !important; }
+            .grid-main { padding: 58px 16px 16px !important; box-sizing: border-box !important; width: 100% !important; }
             /* Nascondi sidebar e calendario */
             .sidebar { display: none !important; }
             .agenda-panel { display: none !important; }
@@ -149,8 +149,7 @@
                 width: 100% !important;
                 max-width: 100% !important;
                 margin: 0 !important;
-                padding-left: 16px !important;
-                padding-right: 16px !important;
+                padding: 0 !important;
                 box-sizing: border-box !important;
             }
             /* Ogni blocco di contenuto: larghezza piena dentro il padding di main */
