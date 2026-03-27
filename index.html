@@ -335,6 +335,22 @@ async function checkSession() {
     if (user) await initApp(user);
 }
 
+function applyMobileLayout() {
+    if (window.innerWidth > 768) return;
+    const m = '10px';
+    const w = `calc(100vw - 20px)`;
+    document.querySelectorAll('.form-container,.stats-bar,.filter-bar,.section-title,.data-row,.empty,.scroll-area').forEach(el => {
+        el.style.setProperty('width', w, 'important');
+        el.style.setProperty('max-width', w, 'important');
+        el.style.setProperty('margin-left', m, 'important');
+        el.style.setProperty('margin-right', m, 'important');
+        el.style.setProperty('box-sizing', 'border-box', 'important');
+        el.style.setProperty('overflow-x', 'hidden', 'important');
+    });
+    const gm = document.querySelector('.grid-main');
+    if (gm) { gm.style.setProperty('overflow-x', 'hidden', 'important'); gm.style.setProperty('width', '100vw', 'important'); }
+}
+
 async function initApp(user) {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = '';
@@ -342,6 +358,7 @@ async function initApp(user) {
     updateForm();
     await refreshData();
     handleUrlParams();
+    applyMobileLayout();
 }
 
 async function signIn() {
@@ -438,6 +455,7 @@ function renderDeadlines() {
     const done = filteredTasks.filter(t => t.is_completed);
     document.getElementById('listaAttive').innerHTML = active.length ? active.map(deadlineRow).join('') : `<div class="empty"><div class="empty-icon">📭</div>Nessuna scadenza attiva</div>`;
     document.getElementById('listaPassate').innerHTML = done.map(deadlineRow).join('');
+    applyMobileLayout();
 }
 
 function deadlineRow(t) {
