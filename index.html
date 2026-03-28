@@ -41,6 +41,9 @@
         .scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 4px; max-width: 100%; }
         .form-container { background: var(--panel); border: 2px solid var(--accent); border-radius: 12px; padding: 14px; margin-bottom: 14px; flex-shrink: 0; }
         .form-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 9px; }
+        .fg2 { grid-column: span 2; }
+        .fg3 { grid-column: span 3; }
+        .fg6 { grid-column: span 6; }
         label { font-size: 11px; color: var(--accent); font-weight: 800; text-transform: uppercase; margin-bottom: 2px; display: block; }
         input, select { background: var(--input-bg); border: 1px solid var(--border); border-radius: 5px; padding: 9px; color: #fff; width: 100%; font-size: 14px; font-family: inherit; }
         input::placeholder { color: var(--text2); }
@@ -126,6 +129,7 @@
             .scroll-area { overflow: visible; height: auto; padding-right: 0; }
             .form-grid { grid-template-columns: 1fr !important; }
             .form-grid > * { grid-column: 1 / -1 !important; }
+            .fg2, .fg3, .fg6 { grid-column: 1 / -1 !important; }
             .form-container { border-radius: 0 !important; border-left: none !important; border-right: none !important; }
             .data-row { display: flex !important; flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; }
             .deadline-row, .vehicle-row { grid-template-columns: unset !important; }
@@ -622,12 +626,12 @@ function updateForm() {
     if (currentView === 'deadlines') {
         c.innerHTML = `<div class="form-grid">
             <input type="hidden" id="editId">
-            <div style="grid-column:span 2"><label>Mezzo</label><select id="fPlate">${fleet.map(v => `<option value="${esc(v.plate)}">${esc(v.plate)}</option>`).join('')}</select></div>
-            <div style="grid-column:span 2"><label>Categoria</label><select id="fCat">${categories.map(cat => `<option value="${esc(cat.name)}">${esc(cat.name)}</option>`).join('')}</select></div>
-            <div style="grid-column:span 2"><label>Scadenza</label><input type="date" id="fDate"></div>
-            <div style="grid-column:span 3"><label>Titolo</label><input type="text" id="fTitle" placeholder="es. Revisione, Assicurazione..."></div>
-            <div style="grid-column:span 3"><label>Note</label><input type="text" id="fNote" placeholder="Opzionale"></div>
-            <div style="grid-column:span 6"><button class="btn btn-acc" id="save-dl-btn" style="width:100%;padding:11px;" onclick="salvaScadenza()">SALVA SCADENZA</button></div>
+            <div class="fg2"><label>Mezzo</label><select id="fPlate">${fleet.map(v => `<option value="${esc(v.plate)}">${esc(v.plate)}</option>`).join('')}</select></div>
+            <div class="fg2"><label>Categoria</label><select id="fCat">${categories.map(cat => `<option value="${esc(cat.name)}">${esc(cat.name)}</option>`).join('')}</select></div>
+            <div class="fg2"><label>Scadenza</label><input type="date" id="fDate"></div>
+            <div class="fg3"><label>Titolo</label><input type="text" id="fTitle" placeholder="es. Revisione, Assicurazione..."></div>
+            <div class="fg3"><label>Note</label><input type="text" id="fNote" placeholder="Opzionale"></div>
+            <div class="fg6"><button class="btn btn-acc" id="save-dl-btn" style="width:100%;padding:11px;" onclick="salvaScadenza()">SALVA SCADENZA</button></div>
         </div>`;
     } else {
         c.innerHTML = `<div class="form-grid">
