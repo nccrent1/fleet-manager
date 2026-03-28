@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>Fleet Manager Pro | v2.0</title>
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
@@ -127,6 +127,7 @@
             .agenda-panel { display: none !important; }
             main { height: auto; overflow: visible; width: 100%; }
             .scroll-area { overflow: visible; height: auto; padding-right: 0; }
+            input, select { font-size: 16px !important; }
             .form-grid { grid-template-columns: 1fr !important; }
             .form-grid > * { grid-column: 1 / -1 !important; }
             .fg2, .fg3, .fg6 { grid-column: 1 / -1 !important; }
@@ -161,21 +162,6 @@
     <!-- Top bar mobile: solo titolo -->
     <div class="mobile-bar">
         <span class="mob-title">🚗 FLEET MANAGER</span>
-    </div>
-    <!-- Bottom navigation mobile -->
-    <div class="bottom-nav">
-        <button id="bnav-dl" class="bnav-item active" onclick="switchView('deadlines')">
-            <span class="bnav-icon">📅</span>
-            <span>SCADENZE</span>
-        </button>
-        <button id="bnav-fl" class="bnav-item" onclick="switchView('fleet')">
-            <span class="bnav-icon">🚗</span>
-            <span>MEZZI</span>
-        </button>
-        <button class="bnav-item logout-btn" onclick="signOut()">
-            <span class="bnav-icon">🚪</span>
-            <span>ESCI</span>
-        </button>
     </div>
 
     <!-- App body -->
@@ -238,6 +224,22 @@
     </aside>
 
     </div><!-- /app-body -->
+
+    <!-- Bottom navigation mobile -->
+    <div class="bottom-nav">
+        <button id="bnav-dl" class="bnav-item active" onclick="switchView('deadlines')">
+            <span class="bnav-icon">📅</span>
+            <span>SCADENZE</span>
+        </button>
+        <button id="bnav-fl" class="bnav-item" onclick="switchView('fleet')">
+            <span class="bnav-icon">🚗</span>
+            <span>MEZZI</span>
+        </button>
+        <button class="bnav-item logout-btn" onclick="signOut()">
+            <span class="bnav-icon">🚪</span>
+            <span>ESCI</span>
+        </button>
+    </div>
 </div>
 
 <!-- ── Toast ─────────────────────────────────────────── -->
